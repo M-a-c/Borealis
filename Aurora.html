@@ -10,6 +10,7 @@
 <!--The basic functionality this program interface provides should be uninterupted by upgrades  -->
 <html><head>
 	<script>
+	var testMode = true;
 	var str;
 	var fadeColors=false;
 	var fadeSpeed=50;
@@ -26,12 +27,19 @@
 		testWebSocket(); 
 	}  
 	function testWebSocket() { 
-		websocket = new WebSocket(wsUri);
+		if (!testMode) {
+			websocket = new WebSocket(wsUri);
+		}
+		else{
+			wsUri = "ws://localhost:8888/";
+			websocket = new WebSocket(wsUri);
+		}
+		
 		websocket.onopen = function(evt) { onOpen(evt) }; 
 		websocket.onclose = function(evt) { onClose(evt) }; 
 		websocket.onmessage = function(evt) { onMessage(evt) }; 
 		websocket.onerror = function(evt) { onError(evt) }; 
-	}  
+	} ; 
 	function onOpen(evt) { 
 		writeToScreen("CONNECTED"); 
 	}  

@@ -1,6 +1,21 @@
 #Mac Carter UIC 
 #In "main" comments partain to the 'todo list' in the code.
 
+DEBUG = True
+#REMOVE
+
+#!/usr/bin/env python
+# """A simple/readable example of driving a Shiftbrite / Octobar / Allegro A6281 
+# via  hardware SPI on the Raspberry Pi.
+ 
+# You must have /dev/spidev* devices / bcm2708_spi driver for this to work.
+# """
+ 
+# import fcntl, array, RPi.GPIO as GPIO
+#
+#	^    ENABLE THE SCRIPT ABOVE    ^
+#
+
 
 #-------------------------------------------------------------------------------------------------------------------------------------#
 #----------------------------------------------------CREDIT for some snipits go to----------------------------------------------------#
@@ -28,17 +43,9 @@ import tornado.web
 import tornado.websocket
 import tornado.ioloop
 
-from time import time #time libraries 
+import time #import time, sleep #time libraries 
 
 
-#!/usr/bin/env python
-# """A simple/readable example of driving a Shiftbrite / Octobar / Allegro A6281 
-# via  hardware SPI on the Raspberry Pi.
- 
-# You must have /dev/spidev* devices / bcm2708_spi driver for this to work.
-# """
- 
-import fcntl, array, RPi.GPIO as GPIO
  
 ### /Configuration ###
 ## Diagram by Mac Carter
@@ -88,8 +95,6 @@ ENABLE_PIN = 8
 LATCH_PIN  = 7
 
 
-tkDebug = True
-
 def printDebug(r,g,b):
 	print("r"+str(r))
     print("g"+str(g))
@@ -111,7 +116,7 @@ def unpack_color(v):
     pass
 
 def bootSequence():
-	    for x in xrange(0,NUM_LEDS):
+	for x in xrange(0,NUM_LEDS):
         set_led(x, 0, 0, 0)
 
     update_leds(leds)
@@ -141,6 +146,7 @@ def bootSequence():
 	pass
 
 def delay(number):
+	time.time()
 	time.sleep(float(number)/1000.0)#convert seconds to miliseconds
 	pass
 
@@ -195,54 +201,54 @@ def Music(message):
 	pass
 
 def Pulsing(message):#figure out how to maintain luminase intensity still.
-	if message[3]=="#":
-	    r = "0x"+(message[4]+message[5])
-	    g = "0x"+(message[6]+message[7])
-	    b = "0x"+(message[8]+message[9])
+	# if message[3]=="#":
+	#     r = "0x"+(message[4]+message[5])
+	#     g = "0x"+(message[6]+message[7])
+	#     b = "0x"+(message[8]+message[9])
 	
 
-		r = (eval(r)<<2)
-	    g = (eval(g)<<2)
-	    b = (eval(b)<<2)
+	# 	r = (eval(r)<<2)
+	#     g = (eval(g)<<2)
+	#     b = (eval(b)<<2)
 
-	    #temp vars
-	    rOld = r
-	    gOld = g
-	    bOld = b
+	#     #temp vars
+	#     rOld = r
+	#     gOld = g
+	#     bOld = b
 
 
-		# 100'ths of color subtracted each time.
-	    rMult = r/100
-	    gMult = g/100
-	    bMult = b/100
+	# 	# 100'ths of color subtracted each time.
+	#     rMult = r/100
+	#     gMult = g/100
+	#     bMult = b/100
 
-		while False: # make this a thread that gets interpreted from a global var being set.
+	# 	while False: # make this a thread that gets interpreted from a global var being set.
 
-		    for x in xrange(0,100):
-		    	time.sleep(100)#asuming miliseconds.
-		    	if r>0 && ((r-rMult)>0):
-		    		r-=rMult
-		    	if g>0 && ((g-gMult)>0):
-		    		g-=gMult
-		    	if b>0 && ((b-bMult)>0):
-		    		b-=bMult
+	# 	    for x in xrange(0,100):
+	# 	    	time.sleep(100)#asuming miliseconds.
+	# 	    	if ((r>0) && ((r-rMult)>0)):
+	# 	    		r-=rMult
+	# 	    	if ((g>0) && ((g-gMult)>0)):
+	# 	    		g-=gMult
+	# 	    	if ((b>0) && ((b-bMult)>0)):
+	# 	    		b-=bMult
 
-		    	for x in xrange(0,NUM_LEDS):
-		        	set_led(x, rOld, gOld, bOld)
+	# 	    	for x in xrange(0,NUM_LEDS):
+	# 	        	set_led(x, rOld, gOld, bOld)
 
-		    for x in xrange(0,100):
-		    	time.sleep(100)#asuming miliseconds.
-		    	if r<bOld && ((r+rMult)<1023):
-		    		r+=rMult
-		    	if g<bOld && ((g+gMult)<1023):
-		    		g+=gMult
-		    	if b<bOld && ((b+bMult)<1023):
-		    		b+=bMult
+	# 	    for x in xrange(0,100):
+	# 	    	time.sleep(100)#asuming miliseconds.
+	# 	    	if (r<bOld && ((r+rMult)<1023):
+	# 	    		r+=rMult
+	# 	    	if (g<bOld && ((g+gMult)<1023)):
+	# 	    		g+=gMult
+	# 	    	if (b<bOld && ((b+bMult)<1023)):
+	# 	    		b+=bMult
 
-			    for x in xrange(0,NUM_LEDS):
-			        set_led(x, r, g, b)
+	# 		    for x in xrange(0,NUM_LEDS):
+	# 		        set_led(x, r, g, b)
 
-		    update_leds(leds)
+	# 	    update_leds(leds)
 	pass
 
 def Strobe(message):#msg format COMMAND(400),COLOR(#XXXXXX) ,INTERVAL_FLASH (2),(3),(4)readDigits  (10,100,1000) 
@@ -396,25 +402,25 @@ def telemetry(lightIn,X1,X2,Y1,Y2,time):
 	LightIn
 
 def FlashAllRedPattern():
-    counter = 3
+  #   counter = 3
 
-    while counter!=0:
-	    for x in xrange(0,NUM_LEDS):
-	        set_led(x, 0, 0, 0)
+  #   while counter!=0:
+	 #    for x in xrange(0,NUM_LEDS):
+	 #        set_led(x, 0, 0, 0)
 
-	    update_leds(leds)
+	 #    update_leds(leds)
 
-		delay(130)
+		# delay(130)
 
-	    for x in xrange(0,NUM_LEDS):
-	        set_led(x, 1023, 0, 0)
+	 #    for x in xrange(0,NUM_LEDS):
+	 #        set_led(x, 1023, 0, 0)
 
-	    update_leds(leds)
+	 #    update_leds(leds)
 
-		delay(70)
+		# delay(70)
 
-		counter--
-	
+		# counter--
+	DEBUG
 	pass
 
 def off():
@@ -448,15 +454,16 @@ def pack_color(red, green, blue):
     return rv
  
 def update_leds(bytes):
-	if (!tkDebug):
-	    # """Just write the byte array out to the SPI device and toggle the latch"""
-	    #write the shit out over SPI
-	    spidev.write(bytes)
-	    spidev.flush()
+	# if (!DEBUG):
+	#     # """Just write the byte array out to the SPI device and toggle the latch"""
+	#     #write the shit out over SPI
+	#     spidev.write(bytes)
+	#     spidev.flush()
 	 
-	    #latch, #rpi is slow enough we don't need a delay here
-	    GPIO.output(LATCH_PIN, 1)
-	    GPIO.output(LATCH_PIN, 0)
+	#     #latch, #rpi is slow enough we don't need a delay here
+	#     GPIO.output(LATCH_PIN, 1)
+	#     GPIO.output(LATCH_PIN, 0)
+	pass
  
  
 def set_led(num, red, green, blue):
@@ -584,22 +591,23 @@ application = tornado.web.Application([
 
 if __name__ == "__main__":
     #open the SPI device for writing
-    spidev = file("/dev/spidev0.0", "wb")
+	if(not DEBUG):
+	    spidev = file("/dev/spidev0.0", "wb")
 
-    #set the speed of the SPI bus, 5000000 == 5mhz    
-    #Magic number below is from spidev.h SPI_IOC_WR_MAX_SPEED_HZ
-    #TODO: can I reference this as a constant from termios?
-    fcntl.ioctl(spidev, 0x40046b04, array.array('L', [6000000]))
+	    #set the speed of the SPI bus, 5000000 == 5mhz    
+	    #Magic number below is from spidev.h SPI_IOC_WR_MAX_SPEED_HZ
+	    #TODO: can I reference this as a constant from termios?
+	    fcntl.ioctl(spidev, 0x40046b04, array.array('L', [6000000]))
 
-    #setup our GPIO
-    GPIO.setwarnings(False)
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(ENABLE_PIN, GPIO.OUT)
-    GPIO.setup(LATCH_PIN, GPIO.OUT)
+	    #setup our GPIO
+	    GPIO.setwarnings(False)
+	    GPIO.setmode(GPIO.BCM)
+	    GPIO.setup(ENABLE_PIN, GPIO.OUT)
+	    GPIO.setup(LATCH_PIN, GPIO.OUT)
 
-    #both pins low to start
-    GPIO.output(LATCH_PIN, 0)
-    GPIO.output(ENABLE_PIN, 0)
+	    #both pins low to start
+	    GPIO.output(LATCH_PIN, 0)
+	    GPIO.output(ENABLE_PIN, 0)
 
     #setup the initial LED state as a byte array of 4 bytes per module
     leds = bytearray(4 * NUM_LEDS)
