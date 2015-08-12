@@ -13,29 +13,29 @@ DEBUG = True
  
 # import fcntl, array, RPi.GPIO as GPIO
 #
-#	^	ENABLE THE SCRIPT ABOVE	^
+#   ^   ENABLE THE SCRIPT ABOVE ^
 #
 
 
 #-------------------------------------------------------------------------------------------------------------------------------------#
 #----------------------------------------------------CREDIT for some snipits go to----------------------------------------------------#
 #-------------------------------------------------------------------------------------------------------------------------------------#
-#																																	  #
-# 							http://docs.macetech.com/doku.php/raspberry_pi_with_octobrite_shiftbrite								  #
-#																																	  #
-#			   	Basic code was used from this webite to help facilitate the use of the rasberri pi's SPI busself. 					  #
-#																																	  #
+        #                                                                                                                         #
+        #               http://docs.macetech.com/doku.php/raspberry_pi_with_octobrite_shiftbrite                                  #
+        #                                                                                                                         #
+        #   Basic code was used from this webite to help facilitate the use of the rasberri pi's SPI busself.                     #
+        #                                                                                                                         #
 #-------------------------------------------------------------------------------------------------------------------------------------# 
 #-------------------------------------------------------------------------------------------------------------------------------------#
 #-------------------------------------------------------------------------------------------------------------------------------------#
-#																																	  #
-#								https://github.com/backupbrain/tornado-websocket-echo-server										  #
-#																																	  #
-#				  Basic example code was used form backupbrain's github in order to create this programself.						  #
-#					   His code was a very basic 'echo' websockets example using the tornado librarry								  #
-#																																	  #
-#																																	  #
-#																																	  #
+        #                                                                                                                         #
+        #                   https://github.com/backupbrain/tornado-websocket-echo-server                                          #
+        #                                                                                                                         #
+        #     Basic example code was used form backupbrain's github in order to create this programself.                          #
+        #          His code was a very basic 'echo' websockets example using the tornado librarry                                 #
+        #                                                                                                                         #
+        #                                                                                                                         #
+        #                                                                                                                         #
 #-------------------------------------------------------------------------------------------------------------------------------------# 
 
 #import the web and socket infromation form tornado packages
@@ -62,33 +62,33 @@ from random import randint
 ## Here is your pi interface
 # with the pins layed out on the board
 # =======================================
-# |								o  5v	|
-# |								o  o 	|
-# |			---------			o  gnd 	|
-# |								o  o	|
-# |								o  o	|
-# |								o  o 	|
-# |								o  o 	|
-# |								o  o 	|
-# |								o  o 	|
-# |								Di o 	|
-# |								o  o	|
-# |								Ci Ei 	|
-# |								o  Li 	|
-# |									  	|
-# |										|
-# |										|
-# |										|
-# |										|
-# |										|
-# |										|
-# |										|
-# |	 __________							|
-# |	 |		  |							|
-# |	 |ETHERNET|							|
-# |	 |		  | 						|
+# |                             o  5v   |
+# |                             o  o    |
+# |         ---------           o  gnd  |
+# |                             o  o    |
+# |                             o  o    |
+# |                             o  o    |
+# |                             o  o    |
+# |                             o  o    |
+# |                             o  o    |
+# |                             Di o    |
+# |                             o  o    |
+# |                             Ci Ei   |
+# |                             o  Li   |
+# |                                     |
+# |                                     |
+# |                                     |
+# |                                     |
+# |                                     |
+# |                                     |
+# |                                     |
+# |                                     |
+# |  __________                         |
+# |  |        |                         |
+# |  |ETHERNET|                         |
+# |  |        |                         |
 # ===|--------|====|---------|===========
-# 				   |===USB===|
+        #      |===USB===|
 
 ### /Configuration ###
  
@@ -142,7 +142,7 @@ def drawLed(num,r,g,b):
     pass 
 
 def decodeColor(shouldRender,num,color):
-#    print color
+#print color
     
     #undo encoding changes.
     red = (color[1] & 0b00001111)<<6
@@ -187,7 +187,7 @@ def decodeColor(shouldRender,num,color):
         w.itemconfig(string, fill=fillColor)
         w.itemconfig(stringTwo, fill=fillColorInverse)
 
-#        print(string)
+        #print(string)
 
         pass
     
@@ -220,7 +220,7 @@ def bootSequence():
         set_led(x, 1023, 1023, 1023)
    
     updateLeds(leds)
-#    Wave("asdf")
+#Wave("asdf")
 
     pass
 
@@ -272,7 +272,7 @@ def blinking(message):
             delay (200)
 
             for x in xrange(0,NUM_LEDS):
-                set_led(x, 0, 0, 0)	
+                set_led(x, 0, 0, 0) 
 
             updateLeds(leds)
             delay (200)
@@ -562,14 +562,42 @@ def set_led(num, r, g, b):
     global leds
  
     leds[num*4:(num*4)+4] = encodeColor(r, g, b)
-#    decodeColor(DEBUG,num,leds[num*4:(num*4)+4])
+#decodeColor(DEBUG,num,leds[num*4:(num*4)+4])
 
- 
+class LightThread (threading.Thread):
+    lightStatic = "000"
+    lightBlinking = "100"
+    lightMusic = "200"
+    lightPulsing = "300"
+    lightStrobe = "400"
+    lightPartyMode = "500"
+    lightSky = "600"
+    lightWave = "700"
+    lightWeather = "800"
+    lightDnddice = "900"
+    lightRandom = "A00"
+    lightClock = "B00"
+    lightGradentSwitch = "C00"
+    lightDayTime = "D00"
+    lightTwitter = "E00"
+    lightBarLights = "F00"
+    lightOff = "0FF"
+
+
+    def __init__(self):
+        threading.Thread.__init__(self)
+        #application = tornado.web.Application([(r'/',WSHandler)])
+        # application = tornado.web.Application([(r"/", WebSocketHandler),])
+        # application.listen(8888)
+    def run(self):
+        # start a thread for the state machine.
+        print "Started a light thread"
+        
 
 class TornadoThread (threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-#        application = tornado.web.Application([(r'/',WSHandler)])
+        #application = tornado.web.Application([(r'/',WSHandler)])
         application = tornado.web.Application([(r"/", WebSocketHandler),])
         application.listen(8888)
     def run(self):
@@ -580,8 +608,6 @@ class TornadoThread (threading.Thread):
 
 
 class WebSocketHandler(tornado.websocket.WebSocketHandler):
-
-
     def check_origin(self, origin):
         return True
 
@@ -635,11 +661,11 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         if messageHeader == "0FF":#done
             off()
             
-#        else:
-#            FlashAllRedPattern();#incorrect command.
+        #else:
+        #FlashAllRedPattern();#incorrect command.
 
 
-        #write the data to the strip	
+        #write the data to the strip    
         updateLeds(leds)
 
         # self.write_message("message received")
@@ -656,7 +682,7 @@ if __name__ == "__main__":
     if(not DEBUG):
         spidev = file("/dev/spidev0.0", "wb")
 
-        #set the speed of the SPI bus, 5000000 == 5mhz	
+        #set the speed of the SPI bus, 5000000 == 5mhz  
         #Magic number below is from spidev.h SPI_IOC_WR_MAX_SPEED_HZ
         #TODO: can I reference this as a constant from termios?
         fcntl.ioctl(spidev, 0x40046b04, array.array('L', [6000000]))
