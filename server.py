@@ -435,28 +435,31 @@ def random(message):
     pass
 
 def clock(message):
+    # NUM_LEDS=31#fix
 
     tOld=0
 
     t = time.time()
     t = int(t)
-    tOld=t
-
-    while False:#add threading
+    print(t)
+    while True:#add threading
         if tOld!=t:
+            tOld=t
             t = time.time()
             t = int(t)
-            tOld=t
-
+            print("asdf")
             t = "{0:b}".format(t)
 
             for x in xrange(0,NUM_LEDS):
-                if t[x]=="1":
-                    set_led(x, 1023, 1023, 1023)
+                if t[30-x]=="1":
+                    print x," on"
+                   set_led(x, 1023, 1023, 1023)
                 else:
-                    set_led(x, 0, 0, 0)
-
-            updateLeds(leds)
+                    print x," off"
+                   set_led(x, 0, 0, 0)
+            delay(1000)
+    #
+           updateLeds(leds)
     pass
 
 def gradentSwitch(message):
