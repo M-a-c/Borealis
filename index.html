@@ -1,0 +1,623 @@
+<!--Mac Carter-->
+
+<!--*******************************************************************************************-->
+<!-- Color pattern taken from http://html-color-codes.info as a basic template for good colors -->
+<!--*******************************************************************************************-->
+
+<!--DESC: USER SELECTS COLOR COLOR IS SET INTO A DIV AND SENT TO ALL LIGHTS ON THE SERVER.-->
+<!--START WRITE DATE: MARCH 6-->
+<!--The code in this file must be modifyed in order to meet the new specifications of the server-->
+<!--The basic functionality this program interface provides should be uninterupted by upgrades  -->
+<html><head>
+	<script>
+	var str;
+	var fadeColors=false;
+	var fadeSpeed=50;
+
+	var newCOLOR = {'R':0,'G':0,'B':0};
+	var oldCOLOR = {'R':0,'G':0,'B':0};
+	
+
+
+	var wsUri = "ws://172.29.0.70:8888/"; //figure out how to do forwarding on this at some point 
+		var output;  
+	function init() { 
+		output = document.getElementById("output"); 
+		testWebSocket(); 
+	}  
+	function testWebSocket() { 
+		websocket = new WebSocket(wsUri);
+		websocket.onopen = function(evt) { onOpen(evt) }; 
+		websocket.onclose = function(evt) { onClose(evt) }; 
+		websocket.onmessage = function(evt) { onMessage(evt) }; 
+		websocket.onerror = function(evt) { onError(evt) }; 
+	}  
+	function onOpen(evt) { 
+		writeToScreen("CONNECTED"); 
+	}  
+	function onOpenSend(evt,hex) { 
+		writeToScreen("CONNECTED"); 
+		doSend(hex); 
+	}  
+	function onClose(evt) {
+		writeToScreen("DISCONNECTED"); 
+	}  
+	function onMessage(evt) { 
+		writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data+'</span>'); 
+		websocket.close(); 
+	}  
+	function onError(evt) {
+		writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+	}  
+	function doSend(message) { 
+		websocket.send(message); 
+	}  
+	function writeToScreen(message) { 
+		var pre = document.createElement("p"); 
+		pre.style.wordWrap = "break-word"; 
+		pre.innerHTML = message; output.appendChild(pre); 
+	}  
+
+	window.addEventListener("load", init, false);  
+
+	/*****************************************/
+	/*                                       */
+	/*    Basic functionality test script    */
+	/*                                       */
+	/*****************************************/
+	function readValues(hex){
+		console.log(document.getElementById("fadeColor").checked);
+		
+		oldCOLOR.R = parseInt(newCOLOR.R);
+		oldCOLOR.G = parseInt(newCOLOR.G);
+		oldCOLOR.B = parseInt(newCOLOR.B);
+
+		newCOLOR.R=parseInt((hex[0]+hex[1]),16);console.log(hex[0]+hex[1]+" : "+newCOLOR.R);
+		newCOLOR.G=parseInt((hex[2]+hex[3]),16);console.log(hex[2]+hex[3]+" : "+newCOLOR.G);
+		newCOLOR.B=parseInt((hex[4]+hex[5]),16);console.log(hex[4]+hex[5]+" : "+newCOLOR.B);
+
+		newCOLOR.R=newCOLOR.R*1;
+		newCOLOR.G=newCOLOR.G*1;
+		newCOLOR.B=newCOLOR.B*1;
+
+		if (document.getElementById("fadeColor").checked===true) {
+			fadeColor=true;
+			fadeSpeed=document.getElementById("fadeSpeed").value;
+			// console.log("asdifhasodifjasodifjaosidfjoasd");
+		}
+		else{
+			fadeColor=false;
+		}
+	};
+
+	function setColor(hex){//Gets color form the click and sends it to the server and sets a div background to tell the user what color they clicked.
+		readValues(hex);
+		console.log(hex);
+		console.log();
+
+
+
+		if (fadeColor===true) {
+			// console.log("in loop");
+			var loop=0;
+			function myLoop () {           //  create a loop function
+			   setTimeout(function () {    //  call a 3s setTimeout when the loop is called
+			   		loop=0;
+			              //  your code here
+			      		if (newCOLOR.R!=oldCOLOR.R){
+			      			newCOLOR.R>oldCOLOR.R ? oldCOLOR.R++ : oldCOLOR.R--;
+			      		};
+
+						if (newCOLOR.G!=oldCOLOR.G){
+							newCOLOR.G>oldCOLOR.G ? oldCOLOR.G++ : oldCOLOR.G--;
+						};
+						
+						if (newCOLOR.B!=oldCOLOR.B){
+							newCOLOR.B>oldCOLOR.B ? oldCOLOR.B++ : oldCOLOR.B--;
+						};
+
+						if (oldCOLOR.R!=newCOLOR.R) {loop = 1;};
+						if (oldCOLOR.G!=newCOLOR.G) {loop = 1;};
+						if (oldCOLOR.B!=newCOLOR.B) {loop = 1;};
+
+					console.log(oldCOLOR.R+" : "+newCOLOR.R);
+					console.log(oldCOLOR.G+" : "+newCOLOR.G);
+					console.log(oldCOLOR.B+" : "+newCOLOR.B);
+					console.log("\n");
+
+
+			var tempHEX = (decimalToHex(oldCOLOR.R,2)+decimalToHex(oldCOLOR.G,2)+decimalToHex(oldCOLOR.B,2));
+			document.getElementById("showUser").style.backgroundColor = tempHEX; 
+			document.getElementById("showUser").innerHTML = "<mark>"+"#"+tempHEX+"</mark>";
+			// console.log(tempHEX);
+			sendColor(tempHEX);
+
+			                     //  increment the counter
+			      if(loop==1){//  if the counter < 10, call the loop function
+			         myLoop();                //  ..  again which will trigger another 
+			      };                          //  ..  setTimeout()
+
+			   }, fadeSpeed)
+			}
+			myLoop();                      //  start the loop
+		}
+		else{
+			document.getElementById("showUser").style.backgroundColor = hex;
+			document.getElementById("showUser").innerHTML = "<mark>"+"#"+hex+"</mark>";
+			console.log(hex);
+			sendColor(hex);
+		}
+	}
+
+//From stack overflow Luke Smith http://stackoverflow.com/users/5556/luke-smith
+	function decimalToHex(d, padding) {
+	    var hex = Number(d).toString(16);
+	    padding = typeof (padding) === "undefined" || padding === null ? padding = 2 : padding;
+
+	    while (hex.length < padding) {
+	        hex = "0" + hex;
+	    }
+
+	    return hex;
+	}
+
+	function sendColor(hex){
+		// str=hex;//Sets a global var to send.
+		websocket = new WebSocket(wsUri);
+		websocket.onopen = function(evt) { onOpenSend(evt,hex) }; //Sends the hex var too function.
+		websocket.onclose = function(evt) { onClose(evt) }; 
+		websocket.onmessage = function(evt) { onMessage(evt) }; 
+		websocket.onerror = function(evt) { onError(evt) }; 
+	}
+	</script>
+	<style>
+		#showUser{
+			height: 50px;
+			width: 727px;
+			text-align: center;
+			display:table-cell; 
+			vertical-align:middle;
+		}
+
+		#colorchart td{
+			width: 25px;
+			height: 25px;
+		}
+		mark {
+		    background-color: white;
+		    color: black;
+		}
+		#output{
+			height:300px;
+			width: 727px;
+			overflow: scroll;
+		}
+
+	</style>
+</head>
+<body>
+	<div id="inputModifyers">
+
+		Fade to Next Color: <input type="checkbox" id="fadeColor">
+		Fade Speed: <input type="number" id="fadeSpeed" value="50" min="10" max="150">
+
+	</div>
+
+	<div id="showUser">
+
+	</div>
+<table id="colorchart">
+<tbody>
+<tr>
+<td onclick='setColor("FBEFEF");' bgcolor="#FBEFEF"></td>
+<td onclick='setColor("FBF2EF");' bgcolor="#FBF2EF"></td>
+<td onclick='setColor("FBF5EF");' bgcolor="#FBF5EF"></td>
+<td onclick='setColor("FBF8EF");' bgcolor="#FBF8EF"></td>
+<td onclick='setColor("FBFBEF");' bgcolor="#FBFBEF"></td>
+<td onclick='setColor("F8FBEF");' bgcolor="#F8FBEF"></td>
+<td onclick='setColor("F5FBEF");' bgcolor="#F5FBEF"></td>
+<td onclick='setColor("F2FBEF");' bgcolor="#F2FBEF"></td>
+<td onclick='setColor("EFFBEF");' bgcolor="#EFFBEF"></td>
+<td onclick='setColor("EFFBF2");' bgcolor="#EFFBF2"></td>
+<td onclick='setColor("EFFBF5");' bgcolor="#EFFBF5"></td>
+<td onclick='setColor("EFFBF8");' bgcolor="#EFFBF8"></td>
+<td onclick='setColor("EFFBFB");' bgcolor="#EFFBFB"></td>
+<td onclick='setColor("EFF8FB");' bgcolor="#EFF8FB"></td>
+<td onclick='setColor("EFF5FB");' bgcolor="#EFF5FB"></td>
+<td onclick='setColor("EFF2FB");' bgcolor="#EFF2FB"></td>
+<td onclick='setColor("EFEFFB");' bgcolor="#EFEFFB"></td>
+<td onclick='setColor("F2EFFB");' bgcolor="#F2EFFB"></td>
+<td onclick='setColor("F5EFFB");' bgcolor="#F5EFFB"></td>
+<td onclick='setColor("F8EFFB");' bgcolor="#F8EFFB"></td>
+<td onclick='setColor("FBEFFB");' bgcolor="#FBEFFB"></td>
+<td onclick='setColor("FBEFF8");' bgcolor="#FBEFF8"></td>
+<td onclick='setColor("FBEFF5");' bgcolor="#FBEFF5"></td>
+<td onclick='setColor("FBEFF2");' bgcolor="#FBEFF2"></td>
+<td onclick='setColor("FFFFFF");' bgcolor="#FFFFFF"></td>
+</tr>
+
+<tr><td onclick='setColor("F8E0E0");' bgcolor="#F8E0E0"></td>
+<td onclick='setColor("F8E6E0");' bgcolor="#F8E6E0"></td>
+<td onclick='setColor("F8ECE0");' bgcolor="#F8ECE0"></td>
+<td onclick='setColor("F7F2E0");' bgcolor="#F7F2E0"></td>
+<td onclick='setColor("F7F8E0");' bgcolor="#F7F8E0"></td>
+<td onclick='setColor("F1F8E0");' bgcolor="#F1F8E0"></td>
+<td onclick='setColor("ECF8E0");' bgcolor="#ECF8E0"></td>
+<td onclick='setColor("E6F8E0");' bgcolor="#E6F8E0"></td>
+<td onclick='setColor("E0F8E0");' bgcolor="#E0F8E0"></td>
+<td onclick='setColor("E0F8E6");' bgcolor="#E0F8E6"></td>
+<td onclick='setColor("E0F8EC");' bgcolor="#E0F8EC"></td>
+<td onclick='setColor("E0F8F1");' bgcolor="#E0F8F1"></td>
+<td onclick='setColor("E0F8F7");' bgcolor="#E0F8F7"></td>
+<td onclick='setColor("E0F2F7");' bgcolor="#E0F2F7"></td>
+<td onclick='setColor("E0ECF8");' bgcolor="#E0ECF8"></td>
+<td onclick='setColor("E0E6F8");' bgcolor="#E0E6F8"></td>
+<td onclick='setColor("E0E0F8");' bgcolor="#E0E0F8"></td>
+<td onclick='setColor("E6E0F8");' bgcolor="#E6E0F8"></td>
+<td onclick='setColor("ECE0F8");' bgcolor="#ECE0F8"></td>
+<td onclick='setColor("F2E0F7");' bgcolor="#F2E0F7"></td>
+<td onclick='setColor("F8E0F7");' bgcolor="#F8E0F7"></td>
+<td onclick='setColor("F8E0F1");' bgcolor="#F8E0F1"></td>
+<td onclick='setColor("F8E0EC");' bgcolor="#F8E0EC"></td>
+<td onclick='setColor("F8E0E6");' bgcolor="#F8E0E6"></td>
+<td onclick='setColor("FAFAFA");' bgcolor="#FAFAFA"></td>
+</tr>
+
+<tr><td onclick='setColor("F6CECE");' bgcolor="#F6CECE"></td>
+<td onclick='setColor("F6D8CE");' bgcolor="#F6D8CE"></td>
+<td onclick='setColor("F6E3CE");' bgcolor="#F6E3CE"></td>
+<td onclick='setColor("F5ECCE");' bgcolor="#F5ECCE"></td>
+<td onclick='setColor("F5F6CE");' bgcolor="#F5F6CE"></td>
+<td onclick='setColor("ECF6CE");' bgcolor="#ECF6CE"></td>
+<td onclick='setColor("E3F6CE");' bgcolor="#E3F6CE"></td>
+<td onclick='setColor("D8F6CE");' bgcolor="#D8F6CE"></td>
+<td onclick='setColor("CEF6CE");' bgcolor="#CEF6CE"></td>
+<td onclick='setColor("CEF6D8");' bgcolor="#CEF6D8"></td>
+<td onclick='setColor("CEF6E3");' bgcolor="#CEF6E3"></td>
+<td onclick='setColor("CEF6EC");' bgcolor="#CEF6EC"></td>
+<td onclick='setColor("CEF6F5");' bgcolor="#CEF6F5"></td>
+<td onclick='setColor("CEECF5");' bgcolor="#CEECF5"></td>
+<td onclick='setColor("CEE3F6");' bgcolor="#CEE3F6"></td>
+<td onclick='setColor("CED8F6");' bgcolor="#CED8F6"></td>
+<td onclick='setColor("CECEF6");' bgcolor="#CECEF6"></td>
+<td onclick='setColor("D8CEF6");' bgcolor="#D8CEF6"></td>
+<td onclick='setColor("E3CEF6");' bgcolor="#E3CEF6"></td>
+<td onclick='setColor("ECCEF5");' bgcolor="#ECCEF5"></td>
+<td onclick='setColor("F6CEF5");' bgcolor="#F6CEF5"></td>
+<td onclick='setColor("F6CEEC");' bgcolor="#F6CEEC"></td>
+<td onclick='setColor("F6CEE3");' bgcolor="#F6CEE3"></td>
+<td onclick='setColor("F6CED8");' bgcolor="#F6CED8"></td>
+<td onclick='setColor("F2F2F2");' bgcolor="#F2F2F2"></td>
+</tr>
+
+<tr><td onclick='setColor("F5A9A9");' bgcolor="#F5A9A9"></td>
+<td onclick='setColor("F5BCA9");' bgcolor="#F5BCA9"></td>
+<td onclick='setColor("F5D0A9");' bgcolor="#F5D0A9"></td>
+<td onclick='setColor("F3E2A9");' bgcolor="#F3E2A9"></td>
+<td onclick='setColor("F2F5A9");' bgcolor="#F2F5A9"></td>
+<td onclick='setColor("E1F5A9");' bgcolor="#E1F5A9"></td>
+<td onclick='setColor("D0F5A9");' bgcolor="#D0F5A9"></td>
+<td onclick='setColor("BCF5A9");' bgcolor="#BCF5A9"></td>
+<td onclick='setColor("A9F5A9");' bgcolor="#A9F5A9"></td>
+<td onclick='setColor("A9F5BC");' bgcolor="#A9F5BC"></td>
+<td onclick='setColor("A9F5D0");' bgcolor="#A9F5D0"></td>
+<td onclick='setColor("A9F5E1");' bgcolor="#A9F5E1"></td>
+<td onclick='setColor("A9F5F2");' bgcolor="#A9F5F2"></td>
+<td onclick='setColor("A9E2F3");' bgcolor="#A9E2F3"></td>
+<td onclick='setColor("A9D0F5");' bgcolor="#A9D0F5"></td>
+<td onclick='setColor("A9BCF5");' bgcolor="#A9BCF5"></td>
+<td onclick='setColor("A9A9F5");' bgcolor="#A9A9F5"></td>
+<td onclick='setColor("BCA9F5");' bgcolor="#BCA9F5"></td>
+<td onclick='setColor("D0A9F5");' bgcolor="#D0A9F5"></td>
+<td onclick='setColor("E2A9F3");' bgcolor="#E2A9F3"></td>
+<td onclick='setColor("F5A9F2");' bgcolor="#F5A9F2"></td>
+<td onclick='setColor("F5A9E1");' bgcolor="#F5A9E1"></td>
+<td onclick='setColor("F5A9D0");' bgcolor="#F5A9D0"></td>
+<td onclick='setColor("F5A9BC");' bgcolor="#F5A9BC"></td>
+<td onclick='setColor("E6E6E6");' bgcolor="#E6E6E6"></td>
+</tr>
+
+<tr><td onclick='setColor("F78181");' bgcolor="#F78181"></td>
+<td onclick='setColor("F79F81");' bgcolor="#F79F81"></td>
+<td onclick='setColor("F7BE81");' bgcolor="#F7BE81"></td>
+<td onclick='setColor("F5DA81");' bgcolor="#F5DA81"></td>
+<td onclick='setColor("F3F781");' bgcolor="#F3F781"></td>
+<td onclick='setColor("D8F781");' bgcolor="#D8F781"></td>
+<td onclick='setColor("BEF781");' bgcolor="#BEF781"></td>
+<td onclick='setColor("9FF781");' bgcolor="#9FF781"></td>
+<td onclick='setColor("81F781");' bgcolor="#81F781"></td>
+<td onclick='setColor("81F79F");' bgcolor="#81F79F"></td>
+<td onclick='setColor("81F7BE");' bgcolor="#81F7BE"></td>
+<td onclick='setColor("81F7D8");' bgcolor="#81F7D8"></td>
+<td onclick='setColor("81F7F3");' bgcolor="#81F7F3"></td>
+<td onclick='setColor("81DAF5");' bgcolor="#81DAF5"></td>
+<td onclick='setColor("81BEF7");' bgcolor="#81BEF7"></td>
+<td onclick='setColor("819FF7");' bgcolor="#819FF7"></td>
+<td onclick='setColor("8181F7");' bgcolor="#8181F7"></td>
+<td onclick='setColor("9F81F7");' bgcolor="#9F81F7"></td>
+<td onclick='setColor("BE81F7");' bgcolor="#BE81F7"></td>
+<td onclick='setColor("DA81F5");' bgcolor="#DA81F5"></td>
+<td onclick='setColor("F781F3");' bgcolor="#F781F3"></td>
+<td onclick='setColor("F781D8");' bgcolor="#F781D8"></td>
+<td onclick='setColor("F781BE");' bgcolor="#F781BE"></td>
+<td onclick='setColor("F7819F");' bgcolor="#F7819F"></td>
+<td onclick='setColor("D8D8D8");' bgcolor="#D8D8D8"></td>
+</tr>
+
+<tr><td onclick='setColor("FA5858");' bgcolor="#FA5858"></td>
+<td onclick='setColor("FA8258");' bgcolor="#FA8258"></td>
+<td onclick='setColor("FAAC58");' bgcolor="#FAAC58"></td>
+<td onclick='setColor("F7D358");' bgcolor="#F7D358"></td>
+<td onclick='setColor("F4FA58");' bgcolor="#F4FA58"></td>
+<td onclick='setColor("D0FA58");' bgcolor="#D0FA58"></td>
+<td onclick='setColor("ACFA58");' bgcolor="#ACFA58"></td>
+<td onclick='setColor("82FA58");' bgcolor="#82FA58"></td>
+<td onclick='setColor("58FA58");' bgcolor="#58FA58"></td>
+<td onclick='setColor("58FA82");' bgcolor="#58FA82"></td>
+<td onclick='setColor("58FAAC");' bgcolor="#58FAAC"></td>
+<td onclick='setColor("58FAD0");' bgcolor="#58FAD0"></td>
+<td onclick='setColor("58FAF4");' bgcolor="#58FAF4"></td>
+<td onclick='setColor("58D3F7");' bgcolor="#58D3F7"></td>
+<td onclick='setColor("58ACFA");' bgcolor="#58ACFA"></td>
+<td onclick='setColor("5882FA");' bgcolor="#5882FA"></td>
+<td onclick='setColor("5858FA");' bgcolor="#5858FA"></td>
+<td onclick='setColor("8258FA");' bgcolor="#8258FA"></td>
+<td onclick='setColor("AC58FA");' bgcolor="#AC58FA"></td>
+<td onclick='setColor("D358F7");' bgcolor="#D358F7"></td>
+<td onclick='setColor("FA58F4");' bgcolor="#FA58F4"></td>
+<td onclick='setColor("FA58D0");' bgcolor="#FA58D0"></td>
+<td onclick='setColor("FA58AC");' bgcolor="#FA58AC"></td>
+<td onclick='setColor("FA5882");' bgcolor="#FA5882"></td>
+<td onclick='setColor("BDBDBD");' bgcolor="#BDBDBD"></td>
+</tr>
+
+<tr><td onclick='setColor("FE2E2E");' bgcolor="#FE2E2E"></td>
+<td onclick='setColor("FE642E");' bgcolor="#FE642E"></td>
+<td onclick='setColor("FE9A2E");' bgcolor="#FE9A2E"></td>
+<td onclick='setColor("FACC2E");' bgcolor="#FACC2E"></td>
+<td onclick='setColor("F7FE2E");' bgcolor="#F7FE2E"></td>
+<td onclick='setColor("C8FE2E");' bgcolor="#C8FE2E"></td>
+<td onclick='setColor("9AFE2E");' bgcolor="#9AFE2E"></td>
+<td onclick='setColor("64FE2E");' bgcolor="#64FE2E"></td>
+<td onclick='setColor("2EFE2E");' bgcolor="#2EFE2E"></td>
+<td onclick='setColor("2EFE64");' bgcolor="#2EFE64"></td>
+<td onclick='setColor("2EFE9A");' bgcolor="#2EFE9A"></td>
+<td onclick='setColor("2EFEC8");' bgcolor="#2EFEC8"></td>
+<td onclick='setColor("2EFEF7");' bgcolor="#2EFEF7"></td>
+<td onclick='setColor("2ECCFA");' bgcolor="#2ECCFA"></td>
+<td onclick='setColor("2E9AFE");' bgcolor="#2E9AFE"></td>
+<td onclick='setColor("2E64FE");' bgcolor="#2E64FE"></td>
+<td onclick='setColor("2E2EFE");' bgcolor="#2E2EFE"></td>
+<td onclick='setColor("642EFE");' bgcolor="#642EFE"></td>
+<td onclick='setColor("9A2EFE");' bgcolor="#9A2EFE"></td>
+<td onclick='setColor("CC2EFA");' bgcolor="#CC2EFA"></td>
+<td onclick='setColor("FE2EF7");' bgcolor="#FE2EF7"></td>
+<td onclick='setColor("FE2EC8");' bgcolor="#FE2EC8"></td>
+<td onclick='setColor("FE2E9A");' bgcolor="#FE2E9A"></td>
+<td onclick='setColor("FE2E64");' bgcolor="#FE2E64"></td>
+<td onclick='setColor("A4A4A4");' bgcolor="#A4A4A4"></td>
+</tr>
+
+<tr><td onclick='setColor("FF0000");' bgcolor="#FF0000"></td>
+<td onclick='setColor("FF4000");' bgcolor="#FF4000"></td>
+<td onclick='setColor("FF8000");' bgcolor="#FF8000"></td>
+<td onclick='setColor("FFBF00");' bgcolor="#FFBF00"></td>
+<td onclick='setColor("FFFF00");' bgcolor="#FFFF00"></td>
+<td onclick='setColor("BFFF00");' bgcolor="#BFFF00"></td>
+<td onclick='setColor("80FF00");' bgcolor="#80FF00"></td>
+<td onclick='setColor("40FF00");' bgcolor="#40FF00"></td>
+<td onclick='setColor("00FF00");' bgcolor="#00FF00"></td>
+<td onclick='setColor("00FF40");' bgcolor="#00FF40"></td>
+<td onclick='setColor("00FF80");' bgcolor="#00FF80"></td>
+<td onclick='setColor("00FFBF");' bgcolor="#00FFBF"></td>
+<td onclick='setColor("00FFFF");' bgcolor="#00FFFF"></td>
+<td onclick='setColor("00BFFF");' bgcolor="#00BFFF"></td>
+<td onclick='setColor("0080FF");' bgcolor="#0080FF"></td>
+<td onclick='setColor("0040FF");' bgcolor="#0040FF"></td>
+<td onclick='setColor("0000FF");' bgcolor="#0000FF"></td>
+<td onclick='setColor("4000FF");' bgcolor="#4000FF"></td>
+<td onclick='setColor("8000FF");' bgcolor="#8000FF"></td>
+<td onclick='setColor("BF00FF");' bgcolor="#BF00FF"></td>
+<td onclick='setColor("FF00FF");' bgcolor="#FF00FF"></td>
+<td onclick='setColor("FF00BF");' bgcolor="#FF00BF"></td>
+<td onclick='setColor("FF0080");' bgcolor="#FF0080"></td>
+<td onclick='setColor("FF0040");' bgcolor="#FF0040"></td>
+<td onclick='setColor("848484");' bgcolor="#848484"></td>
+</tr>
+
+<tr><td onclick='setColor("DF0101");' bgcolor="#DF0101"></td>
+<td onclick='setColor("DF3A01");' bgcolor="#DF3A01"></td>
+<td onclick='setColor("DF7401");' bgcolor="#DF7401"></td>
+<td onclick='setColor("DBA901");' bgcolor="#DBA901"></td>
+<td onclick='setColor("D7DF01");' bgcolor="#D7DF01"></td>
+<td onclick='setColor("A5DF00");' bgcolor="#A5DF00"></td>
+<td onclick='setColor("74DF00");' bgcolor="#74DF00"></td>
+<td onclick='setColor("3ADF00");' bgcolor="#3ADF00"></td>
+<td onclick='setColor("01DF01");' bgcolor="#01DF01"></td>
+<td onclick='setColor("01DF3A");' bgcolor="#01DF3A"></td>
+<td onclick='setColor("01DF74");' bgcolor="#01DF74"></td>
+<td onclick='setColor("01DFA5");' bgcolor="#01DFA5"></td>
+<td onclick='setColor("01DFD7");' bgcolor="#01DFD7"></td>
+<td onclick='setColor("01A9DB");' bgcolor="#01A9DB"></td>
+<td onclick='setColor("0174DF");' bgcolor="#0174DF"></td>
+<td onclick='setColor("013ADF");' bgcolor="#013ADF"></td>
+<td onclick='setColor("0101DF");' bgcolor="#0101DF"></td>
+<td onclick='setColor("3A01DF");' bgcolor="#3A01DF"></td>
+<td onclick='setColor("7401DF");' bgcolor="#7401DF"></td>
+<td onclick='setColor("A901DB");' bgcolor="#A901DB"></td>
+<td onclick='setColor("DF01D7");' bgcolor="#DF01D7"></td>
+<td onclick='setColor("DF01A5");' bgcolor="#DF01A5"></td>
+<td onclick='setColor("DF0174");' bgcolor="#DF0174"></td>
+<td onclick='setColor("DF013A");' bgcolor="#DF013A"></td>
+<td onclick='setColor("6E6E6E");' bgcolor="#6E6E6E"></td>
+</tr>
+
+<tr>
+<td onclick='setColor("B40404");' bgcolor="#B40404"></td>
+<td onclick='setColor("B43104");' bgcolor="#B43104"></td>
+<td onclick='setColor("B45F04");' bgcolor="#B45F04"></td>
+<td onclick='setColor("B18904");' bgcolor="#B18904"></td>
+<td onclick='setColor("AEB404");' bgcolor="#AEB404"></td>
+<td onclick='setColor("86B404");' bgcolor="#86B404"></td>
+<td onclick='setColor("5FB404");' bgcolor="#5FB404"></td>
+<td onclick='setColor("31B404");' bgcolor="#31B404"></td>
+<td onclick='setColor("04B404");' bgcolor="#04B404"></td>
+<td onclick='setColor("04B431");' bgcolor="#04B431"></td>
+<td onclick='setColor("04B45F");' bgcolor="#04B45F"></td>
+<td onclick='setColor("04B486");' bgcolor="#04B486"></td>
+<td onclick='setColor("04B4AE");' bgcolor="#04B4AE"></td>
+<td onclick='setColor("0489B1");' bgcolor="#0489B1"></td>
+<td onclick='setColor("045FB4");' bgcolor="#045FB4"></td>
+<td onclick='setColor("0431B4");' bgcolor="#0431B4"></td>
+<td onclick='setColor("0404B4");' bgcolor="#0404B4"></td>
+<td onclick='setColor("3104B4");' bgcolor="#3104B4"></td>
+<td onclick='setColor("5F04B4");' bgcolor="#5F04B4"></td>
+<td onclick='setColor("8904B1");' bgcolor="#8904B1"></td>
+<td onclick='setColor("B404AE");' bgcolor="#B404AE"></td>
+<td onclick='setColor("B40486");' bgcolor="#B40486"></td>
+<td onclick='setColor("B4045F");' bgcolor="#B4045F"></td>
+<td onclick='setColor("B40431");' bgcolor="#B40431"></td>
+<td onclick='setColor("585858");' bgcolor="#585858"></td>
+</tr>
+
+<tr><td onclick='setColor("8A0808");' bgcolor="#8A0808"></td>
+<td onclick='setColor("8A2908");' bgcolor="#8A2908"></td>
+<td onclick='setColor("8A4B08");' bgcolor="#8A4B08"></td>
+<td onclick='setColor("886A08");' bgcolor="#886A08"></td>
+<td onclick='setColor("868A08");' bgcolor="#868A08"></td>
+<td onclick='setColor("688A08");' bgcolor="#688A08"></td>
+<td onclick='setColor("4B8A08");' bgcolor="#4B8A08"></td>
+<td onclick='setColor("298A08");' bgcolor="#298A08"></td>
+<td onclick='setColor("088A08");' bgcolor="#088A08"></td>
+<td onclick='setColor("088A29");' bgcolor="#088A29"></td>
+<td onclick='setColor("088A4B");' bgcolor="#088A4B"></td>
+<td onclick='setColor("088A68");' bgcolor="#088A68"></td>
+<td onclick='setColor("088A85");' bgcolor="#088A85"></td>
+<td onclick='setColor("086A87");' bgcolor="#086A87"></td>
+<td onclick='setColor("084B8A");' bgcolor="#084B8A"></td>
+<td onclick='setColor("08298A");' bgcolor="#08298A"></td>
+<td onclick='setColor("08088A");' bgcolor="#08088A"></td>
+<td onclick='setColor("29088A");' bgcolor="#29088A"></td>
+<td onclick='setColor("4B088A");' bgcolor="#4B088A"></td>
+<td onclick='setColor("6A0888");' bgcolor="#6A0888"></td>
+<td onclick='setColor("8A0886");' bgcolor="#8A0886"></td>
+<td onclick='setColor("8A0868");' bgcolor="#8A0868"></td>
+<td onclick='setColor("8A084B");' bgcolor="#8A084B"></td>
+<td onclick='setColor("8A0829");' bgcolor="#8A0829"></td>
+<td onclick='setColor("424242");' bgcolor="#424242"></td>
+</tr>
+
+<tr><td onclick='setColor("610B0B");' bgcolor="#610B0B"></td>
+<td onclick='setColor("61210B");' bgcolor="#61210B"></td>
+<td onclick='setColor("61380B");' bgcolor="#61380B"></td>
+<td onclick='setColor("5F4C0B");' bgcolor="#5F4C0B"></td>
+<td onclick='setColor("5E610B");' bgcolor="#5E610B"></td>
+<td onclick='setColor("4B610B");' bgcolor="#4B610B"></td>
+<td onclick='setColor("38610B");' bgcolor="#38610B"></td>
+<td onclick='setColor("21610B");' bgcolor="#21610B"></td>
+<td onclick='setColor("0B610B");' bgcolor="#0B610B"></td>
+<td onclick='setColor("0B6121");' bgcolor="#0B6121"></td>
+<td onclick='setColor("0B6138");' bgcolor="#0B6138"></td>
+<td onclick='setColor("0B614B");' bgcolor="#0B614B"></td>
+<td onclick='setColor("0B615E");' bgcolor="#0B615E"></td>
+<td onclick='setColor("0B4C5F");' bgcolor="#0B4C5F"></td>
+<td onclick='setColor("0B3861");' bgcolor="#0B3861"></td>
+<td onclick='setColor("0B2161");' bgcolor="#0B2161"></td>
+<td onclick='setColor("0B0B61");' bgcolor="#0B0B61"></td>
+<td onclick='setColor("210B61");' bgcolor="#210B61"></td>
+<td onclick='setColor("380B61");' bgcolor="#380B61"></td>
+<td onclick='setColor("4C0B5F");' bgcolor="#4C0B5F"></td>
+<td onclick='setColor("610B5E");' bgcolor="#610B5E"></td>
+<td onclick='setColor("610B4B");' bgcolor="#610B4B"></td>
+<td onclick='setColor("610B38");' bgcolor="#610B38"></td>
+<td onclick='setColor("610B21");' bgcolor="#610B21"></td>
+<td onclick='setColor("2E2E2E");' bgcolor="#2E2E2E"></td>
+</tr>
+
+<tr><td onclick='setColor("3B0B0B");' bgcolor="#3B0B0B"></td>
+<td onclick='setColor("3B170B");' bgcolor="#3B170B"></td>
+<td onclick='setColor("3B240B");' bgcolor="#3B240B"></td>
+<td onclick='setColor("3A2F0B");' bgcolor="#3A2F0B"></td>
+<td onclick='setColor("393B0B");' bgcolor="#393B0B"></td>
+<td onclick='setColor("2E3B0B");' bgcolor="#2E3B0B"></td>
+<td onclick='setColor("243B0B");' bgcolor="#243B0B"></td>
+<td onclick='setColor("173B0B");' bgcolor="#173B0B"></td>
+<td onclick='setColor("0B3B0B");' bgcolor="#0B3B0B"></td>
+<td onclick='setColor("0B3B17");' bgcolor="#0B3B17"></td>
+<td onclick='setColor("0B3B24");' bgcolor="#0B3B24"></td>
+<td onclick='setColor("0B3B2E");' bgcolor="#0B3B2E"></td>
+<td onclick='setColor("0B3B39");' bgcolor="#0B3B39"></td>
+<td onclick='setColor("0B2F3A");' bgcolor="#0B2F3A"></td>
+<td onclick='setColor("0B243B");' bgcolor="#0B243B"></td>
+<td onclick='setColor("0B173B");' bgcolor="#0B173B"></td>
+<td onclick='setColor("0B0B3B");' bgcolor="#0B0B3B"></td>
+<td onclick='setColor("170B3B");' bgcolor="#170B3B"></td>
+<td onclick='setColor("240B3B");' bgcolor="#240B3B"></td>
+<td onclick='setColor("2F0B3A");' bgcolor="#2F0B3A"></td>
+<td onclick='setColor("3B0B39");' bgcolor="#3B0B39"></td>
+<td onclick='setColor("3B0B2E");' bgcolor="#3B0B2E"></td>
+<td onclick='setColor("3B0B24");' bgcolor="#3B0B24"></td>
+<td onclick='setColor("3B0B17");' bgcolor="#3B0B17"></td>
+<td onclick='setColor("1C1C1C");' bgcolor="#1C1C1C"></td>
+</tr>
+
+<tr><td onclick='setColor("2A0A0A");' bgcolor="#2A0A0A"></td>
+<td onclick='setColor("2A120A");' bgcolor="#2A120A"></td>
+<td onclick='setColor("2A1B0A");' bgcolor="#2A1B0A"></td>
+<td onclick='setColor("29220A");' bgcolor="#29220A"></td>
+<td onclick='setColor("292A0A");' bgcolor="#292A0A"></td>
+<td onclick='setColor("222A0A");' bgcolor="#222A0A"></td>
+<td onclick='setColor("1B2A0A");' bgcolor="#1B2A0A"></td>
+<td onclick='setColor("122A0A");' bgcolor="#122A0A"></td>
+<td onclick='setColor("0A2A0A");' bgcolor="#0A2A0A"></td>
+<td onclick='setColor("0A2A12");' bgcolor="#0A2A12"></td>
+<td onclick='setColor("0A2A1B");' bgcolor="#0A2A1B"></td>
+<td onclick='setColor("0A2A22");' bgcolor="#0A2A22"></td>
+<td onclick='setColor("0A2A29");' bgcolor="#0A2A29"></td>
+<td onclick='setColor("0A2229");' bgcolor="#0A2229"></td>
+<td onclick='setColor("0A1B2A");' bgcolor="#0A1B2A"></td>
+<td onclick='setColor("0A122A");' bgcolor="#0A122A"></td>
+<td onclick='setColor("0A0A2A");' bgcolor="#0A0A2A"></td>
+<td onclick='setColor("120A2A");' bgcolor="#120A2A"></td>
+<td onclick='setColor("1B0A2A");' bgcolor="#1B0A2A"></td>
+<td onclick='setColor("220A29");' bgcolor="#220A29"></td>
+<td onclick='setColor("2A0A29");' bgcolor="#2A0A29"></td>
+<td onclick='setColor("2A0A22");' bgcolor="#2A0A22"></td>
+<td onclick='setColor("2A0A1B");' bgcolor="#2A0A1B"></td>
+<td onclick='setColor("2A0A12");' bgcolor="#2A0A12"></td>
+<td onclick='setColor("151515");' bgcolor="#151515"></td>
+</tr>
+
+<tr><td onclick='setColor("190707");' bgcolor="#190707"></td>
+<td onclick='setColor("190B07");' bgcolor="#190B07"></td>
+<td onclick='setColor("191007");' bgcolor="#191007"></td>
+<td onclick='setColor("181407");' bgcolor="#181407"></td>
+<td onclick='setColor("181907");' bgcolor="#181907"></td>
+<td onclick='setColor("141907");' bgcolor="#141907"></td>
+<td onclick='setColor("101907");' bgcolor="#101907"></td>
+<td onclick='setColor("0B1907");' bgcolor="#0B1907"></td>
+<td onclick='setColor("071907");' bgcolor="#071907"></td>
+<td onclick='setColor("07190B");' bgcolor="#07190B"></td>
+<td onclick='setColor("071910");' bgcolor="#071910"></td>
+<td onclick='setColor("071914");' bgcolor="#071914"></td>
+<td onclick='setColor("071918");' bgcolor="#071918"></td>
+<td onclick='setColor("071418");' bgcolor="#071418"></td>
+<td onclick='setColor("071019");' bgcolor="#071019"></td>
+<td onclick='setColor("070B19");' bgcolor="#070B19"></td>
+<td onclick='setColor("070719");' bgcolor="#070719"></td>
+<td onclick='setColor("0B0719");' bgcolor="#0B0719"></td>
+<td onclick='setColor("100719");' bgcolor="#100719"></td>
+<td onclick='setColor("140718");' bgcolor="#140718"></td>
+<td onclick='setColor("190718");' bgcolor="#190718"></td>
+<td onclick='setColor("190714");' bgcolor="#190714"></td>
+<td onclick='setColor("190710");' bgcolor="#190710"></td>
+<td onclick='setColor("19070B");' bgcolor="#19070B"></td>
+<td onclick='setColor("000000");' bgcolor="#000000"></td>
+</tr>
+
+</tbody></table>
+
+<h2>WebSocket Test</h2>  
+<div id="output"></div>
+
+</body></html>

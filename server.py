@@ -453,13 +453,12 @@ def clock(message):
             for x in xrange(0,NUM_LEDS):
                 if t[30-x]=="1":
                     print x," on"
-                   set_led(x, 1023, 1023, 1023)
+                    set_led(x, 1023, 1023, 1023)
                 else:
                     print x," off"
-                   set_led(x, 0, 0, 0)
+                    set_led(x, 0, 0, 0)
             delay(1000)
-    #
-           updateLeds(leds)
+            updateLeds(leds)
     pass
 
 def gradentSwitch(message):
